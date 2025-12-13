@@ -1,6 +1,7 @@
 # ============================================================
 # Load environment variables
 # ============================================================
+print("🚀 main.py loaded on Render")
 import asyncio
 import os
 import uuid

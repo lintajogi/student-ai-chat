@@ -8,3 +8,4 @@ requests
 transformers
 torch
 openai
+h11<0.15
