@@ -1,0 +1,7 @@
+Gram-Schmidt Process:
+The Gram–Schmidt process is a method for orthonormalizing a set of vectors in an inner product space.
+
+Steps:
+1. Start with vectors v1, v2, ...
+2. Make u1 = v1
+3. For v2: subtract projection on u1, etc.

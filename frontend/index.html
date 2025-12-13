@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Student AI Search</title>
+  <style>
+    body{font-family:Arial;margin:30px}
+    .row{display:flex;gap:8px}
+    .result{border-left:4px solid #ddd;padding:10px;margin:10px 0}
+    #summary{background:#f6f9fb;padding:12px;border-radius:6px;margin-top:8px}
+    .spinner{display:inline-block;width:18px;height:18px;border:3px solid #ccc;border-top-color:#333;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    button { padding: 8px 12px; }
+    input { padding: 8px; width: 520px; }
+  </style>
+</head>
+<body>
+  <h1>Student AI Search</h1>
+  <div class="row">
+    <input id="q" placeholder="Ask a question..." />
+    <button onclick="search()">Search</button>
+    <button onclick="searchWithSummary()">Search + Summary</button>
+    <button onclick="quiz()">Get Quiz</button>
+    <span id="loading" style="margin-left:12px"></span>
+  </div>
+
+  <h2>Results:</h2>
+  <div id="results"></div>
+
+  <h3>Summary</h3>
+  <div id="summary"></div>
+
+  <h3>Quiz</h3>
+  <div id="quiz"></div>
+
+<script>
+const base = 'http://127.0.0.1:8000';
+
+function showLoading(on){
+  document.getElementById('loading').innerHTML = on ? '<span class="spinner"></span> working...' : '';
+}
+
+async function search(){
+  const q = document.getElementById('q').value;
+  showLoading(true);
+  try {
+    const res = await fetch(base + '/search', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({query:q, top_k:5})
+    });
+    const data = await res.json();
+    renderResults(data.results);
+  } catch (e) {
+    document.getElementById('results').innerText = 'Error: ' + e;
+  }
+  showLoading(false);
+}
+
+async function searchWithSummary(){
+  const q = document.getElementById('q').value;
+  showLoading(true);
+  try {
+    const res = await fetch(base + '/search_with_summary', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({query:q, top_k:5})
+    });
+    const data = await res.json();
+    renderResults(data.results);
+    document.getElementById('summary').innerHTML = escapeHtml(data.summary || 'No summary');
+  } catch (e) {
+    document.getElementById('summary').innerText = 'Error: ' + e;
+  }
+  showLoading(false);
+}
+
+async function quiz(){
+  const q = document.getElementById('q').value;
+  showLoading(true);
+  try {
+    const res = await fetch(base + '/generate_quiz', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({query:q, top_k:5, num_questions:3})
+    });
+    const data = await res.json();
+    if(data.quiz){
+      renderQuiz(data.quiz);
+    } else {
+      document.getElementById('quiz').innerText = data.quiz_text || (data.error || 'No quiz');
+    }
+  } catch (e) {
+    document.getElementById('quiz').innerText = 'Error: ' + e;
+  }
+  showLoading(false);
+}
+
+function renderResults(results){
+  const box = document.getElementById('results');
+  box.innerHTML = '';
+  results.forEach(r=>{
+    box.innerHTML += `<div class="result"><b>${r.title}</b><div>${escapeHtml(r.text)}</div><div style="font-style:italic">Score: ${r.score.toFixed(3)}</div></div>`;
+  });
+}
+
+function renderQuiz(quiz){
+  const box = document.getElementById('quiz');
+  box.innerHTML = '';
+  quiz.forEach((q,i)=>{
+    box.innerHTML += `<div style="margin:8px 0"><b>Q${i+1}:</b> ${escapeHtml(q.q)}<ol type="A">${q.choices.map(c=>`<li>${escapeHtml(c)}</li>`).join('')}</ol><b>Answer:</b> ${escapeHtml(q.answer)}<div style="color:#666">${escapeHtml(q.explain || '')}</div></div>`;
+  });
+}
+
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>');}
+</script>
+</body>
+</html>
