@@ -1,6 +1,7 @@
 # ============================================================
 # Load environment variables
 # ============================================================
+import asyncio
 import os
 import uuid
 import logging
