@@ -1,11 +1,7 @@
 fastapi
-uvicorn[standard]
-faiss-cpu
-sentence-transformers
-numpy
-python-dotenv
+uvicorn
+groq
+pydantic
+starlette
 requests
-transformers
-torch
-openai
-h11<0.15
+python-dotenv
